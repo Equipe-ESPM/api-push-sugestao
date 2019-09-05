@@ -1,6 +1,6 @@
 {
   "name": "push-sugestao",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Api que retorna os candidatos específicos a serem notificados",
   "author": "Helen França",
   "license": "MIT",
