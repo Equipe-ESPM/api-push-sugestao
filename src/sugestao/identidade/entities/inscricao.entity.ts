@@ -1,0 +1,27 @@
+import { Entity, Column, ManyToOne, JoinColumn, Index } from 'typeorm';
+import { Auditoria } from './Auditoria.entity';
+import { Pessoa } from './pessoa.entity';
+import { Concurso } from './concurso.entity';
+import { Classificacao } from './classificacao.entity';
+
+@Entity()
+export class Inscricao extends Auditoria {
+  @Column({ type: 'timestamp' })
+  datainscricao: Date;
+
+  @ManyToOne(type => Pessoa, pessoa => pessoa.inscricao)
+  @JoinColumn({ name: 'pessoaid' })
+  @Index('pessoaid_index')
+  pessoa: Pessoa;
+
+  @ManyToOne(type => Concurso, concurso => concurso.orgaoConcurso)
+  @JoinColumn({ name: 'concursoid' })
+  @Index('concrusoid_index')
+  concurso: Concurso;
+
+
+  @ManyToOne(type => Classificacao, classificacoes => classificacoes.id)
+  @JoinColumn({ name: 'classificacaoid' })
+  @Index('classificacaoid_index')
+  classificacoes: Classificacao[];
+}

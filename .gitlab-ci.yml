@@ -1,0 +1,51 @@
+stages:
+  - test
+  - build
+  - deploy
+
+
+cache:
+  key: 'push-sugestao'
+  paths:
+    - node_modules/
+# https://gitlab.com/gitlab-org/gitlab-ce/issues/64959
+# hot fix: Cannot connect to the Docker daemon at tcp://docker:2375. Is the docker daemon running?
+variables:
+  DOCKER_TLS_CERTDIR: ""
+  
+test_job:
+  image: registry.es.gov.br/espm/infraestrutura/containers/node:10-slim
+  stage: test
+  script:
+     - npm install
+
+
+build_job:
+  stage: build
+  image: docker:stable
+
+  services:
+    - docker:dind
+  only:
+    - tags
+  dependencies:
+    - test_job
+  script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_BUILD_TAG .
+    - docker push $CI_REGISTRY_IMAGE:$CI_BUILD_TAG
+    - docker tag $CI_REGISTRY_IMAGE:$CI_BUILD_TAG $CI_REGISTRY_IMAGE:latest
+    - docker push $CI_REGISTRY_IMAGE:latest
+
+deploy_job:
+  stage: deploy
+  image: registry.es.gov.br/espm/infraestrutura/containers/node:8.12.0
+  only:
+    - tags
+  script:
+    - npm i upgrade-rancher
+    - ./node_modules/.bin/upgrade-rancher --IMAGE $CI_REGISTRY_IMAGE:$CI_BUILD_TAG --SERVICE_ID 1s980
+  dependencies:
+    - build_job
+  when: manual
+
